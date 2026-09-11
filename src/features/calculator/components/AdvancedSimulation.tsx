@@ -1,0 +1,189 @@
+import { useMemo, useState } from 'react';
+import {
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { formatCurrencyPLN } from '../../../lib/formatters';
+import {
+  calculateAdvancedLoan,
+  type RepaymentVariant,
+} from '../../../lib/finance/advancedLoanCalculator';
+import type { LoanInput } from '../../../types/loan';
+import { exportScheduleCsv, exportSchedulePdf } from '../advancedExports';
+
+interface AdvancedSimulationProps {
+  input: LoanInput;
+}
+
+interface SavedSimulation {
+  createdAt: string;
+  input: LoanInput;
+}
+
+const STORAGE_KEY = 'creditscope.saved-simulations.v1';
+
+function toPositiveNumber(value: string) {
+  const parsed = Number(value.replace(',', '.'));
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
+  const [variant, setVariant] = useState<RepaymentVariant>('annuity');
+  const [oneTimeInstallment, setOneTimeInstallment] = useState('');
+  const [oneTimeAmount, setOneTimeAmount] = useState('');
+  const [recurringAmount, setRecurringAmount] = useState('');
+  const [savedCount, setSavedCount] = useState(0);
+  const plan = useMemo(
+    () => ({
+      oneTimeInstallment: Number(oneTimeInstallment) || undefined,
+      oneTimeAmount: toPositiveNumber(oneTimeAmount),
+      recurringAmount: toPositiveNumber(recurringAmount),
+    }),
+    [oneTimeAmount, oneTimeInstallment, recurringAmount],
+  );
+  const activeResult = useMemo(
+    () => calculateAdvancedLoan(input, { variant, prepaymentPlan: plan }),
+    [input, plan, variant],
+  );
+  const comparison = useMemo(
+    () => ({
+      annuity: calculateAdvancedLoan(input, { variant: 'annuity' }),
+      declining: calculateAdvancedLoan(input, { variant: 'declining' }),
+    }),
+    [input],
+  );
+  const balanceData = activeResult.schedule.map((item) => ({
+    rata: item.installmentNumber,
+    saldo: item.remainingBalance,
+  }));
+  const compositionData = [
+    { name: 'Kapitał', value: input.loanAmount, color: '#006d77' },
+    { name: 'Odsetki', value: activeResult.totalInterestAmount, color: '#d97706' },
+  ];
+
+  function saveSimulation() {
+    const current = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as SavedSimulation[];
+    const updated = [{ createdAt: new Date().toISOString(), input }, ...current].slice(0, 10);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setSavedCount(updated.length);
+  }
+
+  return (
+    <section className="advanced-simulation" aria-labelledby="advanced-heading">
+      <h3 id="advanced-heading">Rozszerzona symulacja</h3>
+      <p>Porównaj wariant rat i opcjonalnie zastosuj nadpłaty skracające okres spłaty.</p>
+      <div className="advanced-simulation__comparison" aria-label="Porównanie wariantów spłaty">
+        <article>
+          <h4>Raty równe</h4>
+          <p>Pierwsza rata: {formatCurrencyPLN(comparison.annuity.initialInstallment)}</p>
+          <p>Koszt: {formatCurrencyPLN(comparison.annuity.totalCreditCost)}</p>
+        </article>
+        <article>
+          <h4>Raty malejące</h4>
+          <p>Pierwsza rata: {formatCurrencyPLN(comparison.declining.initialInstallment)}</p>
+          <p>Koszt: {formatCurrencyPLN(comparison.declining.totalCreditCost)}</p>
+        </article>
+      </div>
+      <fieldset className="advanced-simulation__controls">
+        <legend>Wariant i nadpłaty</legend>
+        <label>
+          Wariant rat
+          <select
+            value={variant}
+            onChange={(event) => setVariant(event.target.value as RepaymentVariant)}
+          >
+            <option value="annuity">Raty równe</option>
+            <option value="declining">Raty malejące</option>
+          </select>
+        </label>
+        <label>
+          Numer raty z nadpłatą jednorazową
+          <input
+            min="1"
+            max={input.termYears * 12}
+            value={oneTimeInstallment}
+            onChange={(event) => setOneTimeInstallment(event.target.value)}
+            type="number"
+          />
+        </label>
+        <label>
+          Kwota nadpłaty jednorazowej (PLN)
+          <input
+            inputMode="decimal"
+            value={oneTimeAmount}
+            onChange={(event) => setOneTimeAmount(event.target.value)}
+            type="text"
+          />
+        </label>
+        <label>
+          Nadpłata cykliczna co miesiąc (PLN)
+          <input
+            inputMode="decimal"
+            value={recurringAmount}
+            onChange={(event) => setRecurringAmount(event.target.value)}
+            type="text"
+          />
+        </label>
+      </fieldset>
+      <p className="advanced-simulation__summary">
+        Wybrany wariant: {variant === 'annuity' ? 'raty równe' : 'raty malejące'}. Okres po
+        nadpłatach: {activeResult.actualTermMonths} mies., nadpłacony kapitał:{' '}
+        {formatCurrencyPLN(activeResult.prepaymentTotal)}.
+      </p>
+      <div className="advanced-simulation__charts">
+        <div className="advanced-chart">
+          <h4>Saldo zadłużenia</h4>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={balanceData}>
+              <XAxis dataKey="rata" />
+              <YAxis width={72} />
+              <Tooltip formatter={(value) => formatCurrencyPLN(Number(value))} />
+              <Line type="monotone" dataKey="saldo" stroke="#006d77" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="advanced-chart">
+          <h4>Kapitał i odsetki</h4>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie data={compositionData} dataKey="value" nameKey="name" outerRadius={80}>
+                {compositionData.map((item) => (
+                  <Cell fill={item.color} key={item.name} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCurrencyPLN(Number(value))} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="advanced-simulation__actions">
+        <button type="button" onClick={() => exportScheduleCsv(activeResult.schedule)}>
+          Eksportuj CSV
+        </button>
+        <button type="button" onClick={() => exportSchedulePdf(activeResult.schedule)}>
+          Eksportuj PDF
+        </button>
+        <button type="button" onClick={saveSimulation}>
+          Zapisz lokalnie
+        </button>
+      </div>
+      {savedCount > 0 ? (
+        <p role="status">Lokalnie zapisano {savedCount} ostatnich symulacji.</p>
+      ) : null}
+      <p className="advanced-simulation__note">
+        Funkcje rozszerzone służą wyłącznie edukacyjnej symulacji i nie stanowią rekomendacji
+        finansowej.
+      </p>
+    </section>
+  );
+}
