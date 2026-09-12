@@ -1,6 +1,20 @@
 {
   "name": "credit-scope",
+  "description": "Educational loan simulation and indicative household-budget analysis built with React and TypeScript.",
+  "homepage": "https://github.com/jordone23/CreditScope#readme",
+  "keywords": [
+    "credit",
+    "finance",
+    "fintech",
+    "loan-calculator",
+    "react",
+    "typescript"
+  ],
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordone23/CreditScope.git"
+  },
   "version": "0.1.0",
   "type": "module",
   "scripts": {
