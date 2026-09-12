@@ -2,7 +2,7 @@
 
 CreditScope is a responsive web application for educational loan simulations and indicative household-budget analysis. It makes the structure of a repayment plan visible without presenting itself as a bank offer, credit decision, or financial recommendation.
 
-**[Architecture](docs/ARCHITECTURE.md)** · **[Methodology](docs/METHODOLOGY.md)** · **[Setup](docs/SETUP.md)**
+**[Portfolio](docs/PORTFOLIO.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Methodology](docs/METHODOLOGY.md)** · **[Setup](docs/SETUP.md)**
 
 ## Why this project
 
@@ -58,7 +58,7 @@ Authentication and saved analyses are optional. See [Setup](docs/SETUP.md) for S
 
 ## Repository guide
 
-The root README and the concise documents in `docs/` are maintained in English for portfolio readers. The original Polish implementation notes and specifications remain available in `docs/specs/` for readers who want the project history.
+The root README and the concise documents in `docs/` are maintained in English for portfolio readers. The original Polish implementation notes and specifications are preserved in [docs/pl](docs/pl/README.md) as an archive.
 
 ## Disclaimer
 
