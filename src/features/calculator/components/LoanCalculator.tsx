@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { calculateLoan } from '../../../lib/finance/loanCalculator';
 import type { LoanCalculationResult, LoanInput } from '../../../types/loan';
 import { CalculationResults } from './CalculationResults';
@@ -10,6 +11,7 @@ import type { SavedAnalysis } from '../../analyses/savedAnalysis';
 type CalculatorViewState = 'calculated' | 'error' | 'initial';
 
 export function LoanCalculator() {
+  const { t } = useTranslation();
   const [result, setResult] = useState<LoanCalculationResult | null>(null);
   const [calculatedInput, setCalculatedInput] = useState<LoanInput | null>(null);
   const [viewState, setViewState] = useState<CalculatorViewState>('initial');
@@ -44,9 +46,9 @@ export function LoanCalculator() {
   return (
     <section className="calculator" aria-labelledby="calculator-heading">
       <div className="calculator__intro">
-        <p className="eyebrow">Edukacyjna symulacja</p>
-        <h1 id="calculator-heading">Sprawdź orientacyjną ratę kredytu</h1>
-        <p>Podaj dane do symulacji rat równych. Wyniki mają charakter wyłącznie informacyjny.</p>
+        <p className="eyebrow">{t('calculator.eyebrow')}</p>
+        <h1 id="calculator-heading">{t('calculator.title')}</h1>
+        <p>{t('calculator.intro')}</p>
       </div>
       <CalculatorState state={viewState} />
       <div className="calculator__content">

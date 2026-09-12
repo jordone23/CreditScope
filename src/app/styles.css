@@ -69,6 +69,42 @@
     gap: 1rem;
   }
 
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .language-switcher {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-page);
+  }
+
+  .language-switcher__button {
+    min-width: 2.75rem;
+    border: 0;
+    border-left: 1px solid var(--color-border);
+    background: transparent;
+    padding: 0.5rem 0.625rem;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .language-switcher__button:first-child {
+    border-left: 0;
+  }
+
+  .language-switcher__button[aria-pressed='true'] {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
   .brand {
     color: var(--color-ink);
     font-size: 1.25rem;
@@ -359,6 +395,12 @@
     margin: 0 0 1.25rem;
     font-size: 1.25rem;
     letter-spacing: -0.02em;
+  }
+
+  .form-assumption {
+    margin: -0.75rem 0 1.25rem;
+    color: var(--color-muted);
+    font-size: 0.9375rem;
   }
 
   .loan-form__fields {
@@ -666,6 +708,13 @@
     color: var(--color-muted);
   }
 
+  .advanced-simulation__error {
+    margin: 0;
+    color: #a11229;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
   .advanced-simulation__comparison,
   .advanced-simulation__charts {
     display: grid;
@@ -754,6 +803,17 @@
   .advanced-simulation__comparison,
   .advanced-simulation__charts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .site-header__content {
+    align-items: flex-start;
+  }
+
+  .site-header__actions {
+    align-items: flex-end;
+    flex-direction: column;
   }
 }
 

@@ -6,22 +6,22 @@ import { normalizeUsername } from './username';
 
 function readableAuthError(message: string, action: 'sign-in' | 'sign-up' | 'update-password') {
   if (action === 'sign-up' && /database error|unexpected_failure/i.test(message)) {
-    return 'Wybrana nazwa użytkownika jest niedostępna. Wybierz inną.';
+    return 'authErrors.usernameUnavailable';
   }
 
   if (/invalid login credentials/i.test(message)) {
-    return 'Nieprawidłowy adres e-mail lub hasło.';
+    return 'authErrors.invalidCredentials';
   }
 
   if (action === 'sign-in') {
-    return 'Nieprawidłowy adres e-mail lub hasło.';
+    return 'authErrors.invalidCredentials';
   }
 
   if (action === 'update-password') {
-    return 'Nie udało się zmienić hasła. Spróbuj ponownie za chwilę.';
+    return 'authErrors.updatePassword';
   }
 
-  return 'Nie udało się utworzyć konta. Spróbuj ponownie za chwilę.';
+  return 'authErrors.signUp';
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -64,32 +64,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async resendSignupEmail(email) {
         const supabase = getSupabaseClient();
         if (supabase === null) {
-          return 'Ponowienie wiadomości wymaga konfiguracji Supabase.';
+          return 'authErrors.resendConfiguration';
         }
 
         const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
-        return error === null
-          ? null
-          : 'Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.';
+        return error === null ? null : 'authErrors.send';
       },
       async sendPasswordRecoveryEmail(email) {
         const supabase = getSupabaseClient();
         if (supabase === null) {
-          return 'Reset hasła wymaga konfiguracji Supabase.';
+          return 'authErrors.recoveryConfiguration';
         }
 
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: window.location.origin,
         });
-        return error === null
-          ? null
-          : 'Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.';
+        return error === null ? null : 'authErrors.send';
       },
       user: session?.user ?? null,
       async signIn(email, password) {
         const supabase = getSupabaseClient();
         if (supabase === null) {
-          return 'Logowanie wymaga konfiguracji Supabase.';
+          return 'authErrors.signInConfiguration';
         }
 
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
@@ -104,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signUp({ email, password, username }: RegisterData) {
         const supabase = getSupabaseClient();
         if (supabase === null) {
-          return 'Rejestracja wymaga konfiguracji Supabase.';
+          return 'authErrors.signUpConfiguration';
         }
 
         const { error } = await supabase.auth.signUp({
@@ -117,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async updatePassword(password) {
         const supabase = getSupabaseClient();
         if (supabase === null) {
-          return 'Zmiana hasła wymaga konfiguracji Supabase.';
+          return 'authErrors.updateConfiguration';
         }
 
         const { error } = await supabase.auth.updateUser({ password });

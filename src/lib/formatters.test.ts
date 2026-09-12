@@ -16,3 +16,10 @@ describe('formatPercentagePL', () => {
     expect(formatPercentagePL(7.5)).toBe('7,5%');
   });
 });
+
+describe('formatters with English locale', () => {
+  it('uses English decimal separators while keeping PLN', () => {
+    expect(formatCurrencyPLN(12345.5, 'en-GB')).toContain('12,345.50');
+    expect(formatPercentagePL(7.5, 'en-GB')).toBe('7.5%');
+  });
+});

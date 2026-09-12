@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import '../../i18n/config';
+import { useTranslation } from 'react-i18next';
 import type { LoanCalculationResult, LoanInput } from '../../types/loan';
 import { useAuth } from '../auth/authContext';
 import { analysisTitle, saveAnalysis } from './savedAnalysis';
@@ -10,6 +12,7 @@ interface SaveAnalysisButtonProps {
 }
 
 export function SaveAnalysisButton({ input, onSaved, result }: SaveAnalysisButtonProps) {
+  const { t } = useTranslation();
   const { isConfigured, isLoading, user } = useAuth();
   const [title, setTitle] = useState(() => analysisTitle());
   const [message, setMessage] = useState<string | null>(null);
@@ -20,13 +23,11 @@ export function SaveAnalysisButton({ input, onSaved, result }: SaveAnalysisButto
   }
 
   if (isLoading) {
-    return <p className="saved-analysis__status">Sprawdzanie możliwości zapisu…</p>;
+    return <p className="saved-analysis__status">{t('savedAnalyses.checkingSave')}</p>;
   }
 
   if (user === null) {
-    return (
-      <p className="saved-analysis__status">Zaloguj się, aby zapisać tę analizę na swoim koncie.</p>
-    );
+    return <p className="saved-analysis__status">{t('savedAnalyses.signInToSave')}</p>;
   }
 
   async function handleSave() {
@@ -34,18 +35,18 @@ export function SaveAnalysisButton({ input, onSaved, result }: SaveAnalysisButto
     setMessage(null);
     try {
       await saveAnalysis(title, input, result);
-      setMessage('Analiza została zapisana.');
+      setMessage(t('savedAnalyses.saved'));
       onSaved();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Nie udało się zapisać analizy.');
+    } catch {
+      setMessage(t('savedAnalyses.saveError'));
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <section className="saved-analysis" aria-label="Zapis analizy">
-      <label htmlFor="analysis-title">Nazwa zapisywanej analizy</label>
+    <section className="saved-analysis" aria-label={t('savedAnalyses.section')}>
+      <label htmlFor="analysis-title">{t('savedAnalyses.title')}</label>
       <div className="saved-analysis__controls">
         <input
           id="analysis-title"
@@ -54,7 +55,7 @@ export function SaveAnalysisButton({ input, onSaved, result }: SaveAnalysisButto
           onChange={(event) => setTitle(event.target.value)}
         />
         <button type="button" onClick={() => void handleSave()} disabled={isSaving}>
-          {isSaving ? 'Zapisywanie…' : 'Zapisz analizę'}
+          {isSaving ? t('savedAnalyses.saving') : t('savedAnalyses.save')}
         </button>
       </div>
       {message === null ? null : (

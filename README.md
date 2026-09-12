@@ -1,77 +1,65 @@
 # CreditScope
 
-Responsywna aplikacja webowa do edukacyjnej symulacji kredytu oraz orientacyjnej analizy obciążenia domowego budżetu.
+CreditScope is a responsive web application for educational loan simulations and indicative household-budget analysis. It makes the structure of a repayment plan visible without presenting itself as a bank offer, credit decision, or financial recommendation.
 
-## Dane podawane przez użytkownika
+**[Architecture](docs/ARCHITECTURE.md)** · **[Methodology](docs/METHODOLOGY.md)** · **[Setup](docs/SETUP.md)**
 
-Użytkownik może wprowadzić:
+## Why this project
 
-- kwotę kredytu,
-- oprocentowanie nominalne,
-- okres spłaty,
-- miesięczny dochód netto,
-- miesięczne zobowiązania finansowe.
+The project combines a TypeScript/React interface with deterministic financial calculations, input validation, a detailed repayment schedule, and explicit methodological limits. It is designed as a portfolio project for product, frontend, and fintech-oriented engineering work.
 
-## Wyniki obliczeń
+## Features
 
-System będzie prezentował:
+- Annuity-loan simulation with monthly instalment, total repayment, interest cost, and indicative debt-service ratio.
+- Full repayment schedule split into principal, interest, and remaining balance.
+- Comparison of annuity and declining instalments, including one-off and recurring prepayment scenarios.
+- CSV and PDF schedule exports.
+- Optional Supabase-backed authentication and saved analyses.
+- English and Polish interface with persisted language preference and locale-aware formatting.
+- Validation, accessibility-focused labels, and automated unit/component tests.
 
-- wysokość miesięcznej raty,
-- całkowitą kwotę do spłaty,
-- całkowity koszt kredytu,
-- sumę zapłaconych odsetek,
-- orientacyjny wskaźnik obciążenia dochodu,
-- szczegółowy harmonogram spłat z podziałem na część kapitałową i odsetkową.
+## Technology
 
-## Planowane rozszerzenia
+- React 19, TypeScript, Vite
+- React Hook Form and Zod
+- Decimal.js for financial arithmetic
+- i18next / react-i18next
+- Recharts, Papa Parse, jsPDF
+- Supabase (optional authentication and persistence)
+- Vitest, Testing Library, ESLint, Prettier
 
-W kolejnych etapach aplikacja może zostać rozbudowana o:
+## Financial-model boundaries
 
-- porównanie rat równych i malejących,
-- symulację wcześniejszej spłaty,
-- symulację nadpłat cyklicznych i jednorazowych,
-- porównanie kilku wariantów kredytu,
-- wykres zmiany salda zadłużenia,
-- wykres udziału kapitału i odsetek,
-- eksport harmonogramu do pliku CSV lub PDF,
-- zapisywanie przeprowadzonych symulacji.
+The basic simulation assumes a single disbursement, a fixed nominal annual rate, monthly repayments, and no mandatory fees beyond interest. Therefore it is useful for comparing scenarios, but it is not a reconstruction of a real lender's offer.
 
-## Cel edukacyjny
+APR/RRSO requires complete dated cash flows, including mandatory fees and their payment dates. CreditScope does not claim to calculate a lender's actual APR/RRSO from the basic form alone. The displayed debt-service ratio is educational and cannot replace a lender's creditworthiness or risk assessment.
 
-Projekt pozwoli przećwiczyć:
+Read the complete scope and formulas in [the methodology](docs/METHODOLOGY.md).
 
-- implementację wzorów finansowych,
-- precyzyjne operowanie wartościami pieniężnymi,
-- walidację danych wejściowych,
-- obsługę przypadków brzegowych,
-- tworzenie testów jednostkowych,
-- generowanie harmonogramów spłat,
-- wizualizację danych finansowych,
-- projektowanie czytelnego interfejsu aplikacji webowej.
+## Run locally
 
-## Wartość projektu w portfolio
-
-Projekt będzie czytelnym przykładem połączenia kompetencji programistycznych, finansowych i analitycznych. Może być prezentowany jako aplikacja związana z bankowością detaliczną, fintechiem oraz analizą produktów kredytowych.
-
-## Uruchomienie lokalne
-
-Wymagany jest Node.js w wersji 20 lub nowszej oraz npm.
+Requirements: Node.js 20+ and npm.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Po uruchomieniu Vite wyświetli lokalny adres aplikacji. Dostępne są też komendy jakościowe:
+Quality checks:
 
 ```bash
-npm run build
-npm run lint
-npm run format:check
 npm run test
+npm run lint
+npm run build
+npm run format:check
 ```
 
+Authentication and saved analyses are optional. See [Setup](docs/SETUP.md) for Supabase environment variables.
 
-## Zastrzeżenie
+## Repository guide
 
-> Aplikacja ma charakter wyłącznie edukacyjny i informacyjny. Prezentowane wyniki są uproszczonymi symulacjami i nie stanowią oferty bankowej, rekomendacji finansowej ani rzeczywistej oceny zdolności kredytowej. Faktyczna decyzja kredytowa zależy od zasad, modeli ryzyka i procedur stosowanych przez konkretną instytucję finansową.
+The root README and the concise documents in `docs/` are maintained in English for portfolio readers. Internal planning notes and historical Polish specifications are intentionally not part of the public repository.
+
+## Disclaimer
+
+CreditScope is for educational and informational purposes only. Its results are simplified simulations and are not a bank offer, financial recommendation, or actual creditworthiness assessment.

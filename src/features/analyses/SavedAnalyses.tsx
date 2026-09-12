@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import '../../i18n/config';
+import { useTranslation } from 'react-i18next';
 import { formatCurrencyPLN } from '../../lib/formatters';
 import { useAuth } from '../auth/authContext';
 import {
@@ -15,6 +17,7 @@ interface SavedAnalysesProps {
 }
 
 export function SavedAnalyses({ onOpen, refreshKey }: SavedAnalysesProps) {
+  const { t } = useTranslation();
   const { isConfigured, user } = useAuth();
   const [analyses, setAnalyses] = useState<SavedAnalysisSummary[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -33,16 +36,16 @@ export function SavedAnalyses({ onOpen, refreshKey }: SavedAnalysesProps) {
           setMessage(null);
         }
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (isMounted) {
-          setMessage(error instanceof Error ? error.message : 'Nie udało się pobrać analiz.');
+          setMessage(t('savedAnalyses.fetchError'));
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [isConfigured, refreshKey, user]);
+  }, [isConfigured, refreshKey, t, user]);
 
   if (!isConfigured || user === null) {
     return null;
@@ -52,8 +55,8 @@ export function SavedAnalyses({ onOpen, refreshKey }: SavedAnalysesProps) {
     try {
       await deleteSavedAnalysis(id);
       setAnalyses((current) => current.filter((analysis) => analysis.id !== id));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Nie udało się usunąć analizy.');
+    } catch {
+      setMessage(t('savedAnalyses.deleteError'));
     }
   }
 
@@ -61,21 +64,21 @@ export function SavedAnalyses({ onOpen, refreshKey }: SavedAnalysesProps) {
     setMessage(null);
     try {
       onOpen(await getSavedAnalysis(id));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Nie udało się otworzyć analizy.');
+    } catch {
+      setMessage(t('savedAnalyses.openError'));
     }
   }
 
   return (
     <section className="saved-analyses" aria-labelledby="saved-analyses-heading">
-      <h2 id="saved-analyses-heading">Zapisane analizy</h2>
+      <h2 id="saved-analyses-heading">{t('savedAnalyses.heading')}</h2>
       {message === null ? null : (
         <p className="saved-analysis__status" role="alert">
           {message}
         </p>
       )}
       {analyses.length === 0 ? (
-        <p>Nie masz jeszcze zapisanych analiz.</p>
+        <p>{t('savedAnalyses.empty')}</p>
       ) : (
         <ul>
           {analyses.map((analysis) => (
@@ -86,14 +89,18 @@ export function SavedAnalyses({ onOpen, refreshKey }: SavedAnalysesProps) {
                 onClick={() => void handleOpen(analysis.id)}
               >
                 <strong>{analysis.title}</strong>
-                <span>{formatCurrencyPLN(analysis.monthlyInstallment)} miesięcznej raty</span>
+                <span>
+                  {t('savedAnalyses.monthlyInstallment', {
+                    amount: formatCurrencyPLN(analysis.monthlyInstallment),
+                  })}
+                </span>
               </button>
               <button
                 type="button"
                 className="saved-analyses__delete"
                 onClick={() => void handleDelete(analysis.id)}
               >
-                Usuń
+                {t('savedAnalyses.delete')}
               </button>
             </li>
           ))}

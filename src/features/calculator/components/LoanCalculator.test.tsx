@@ -63,18 +63,21 @@ describe('LoanCalculator', () => {
     const resultsHeading = await screen.findByRole('heading', { name: /wynik symulacji/i });
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.getByText('Miesięczna rata').parentElement).toHaveTextContent(
+    expect(screen.getByText('Miesięczna rata w symulacji').parentElement).toHaveTextContent(
       /10[\s\u00a0]327,97/,
     );
-    expect(screen.getByText('Suma do spłaty').parentElement).toHaveTextContent(
+    expect(screen.getByText('Suma rat w symulacji').parentElement).toHaveTextContent(
       /123[\s\u00a0]935,66/,
     );
-    expect(screen.getByText('Całkowity koszt kredytu').parentElement).toHaveTextContent(
+    expect(screen.getByText('Koszt odsetkowy w symulacji').parentElement).toHaveTextContent(
       '3935,66 zł',
     );
     expect(screen.getByText('Suma odsetek').parentElement).toHaveTextContent('3935,66 zł');
     expect(screen.getByText('113,28%')).toBeVisible();
-    expect(screen.getByText(/nie stanowi oceny zdolności kredytowej/i)).toBeVisible();
+    expect(screen.getByText('Nadwyżka przed kosztami życia').parentElement).toHaveTextContent(
+      /-1327,97 zł/,
+    );
+    expect(screen.getByText(/nie stanowią oceny zdolności kredytowej/i)).toBeVisible();
     expect(screen.getByRole('heading', { name: /harmonogram spłat/i })).toBeVisible();
     await waitFor(() => expect(resultsHeading).toHaveFocus());
   });
@@ -93,8 +96,12 @@ describe('LoanCalculator', () => {
     await user.click(screen.getByRole('button', { name: /oblicz symulację/i }));
 
     expect(await screen.findByRole('heading', { name: /wynik symulacji/i })).toBeVisible();
-    expect(screen.getByText('Miesięczna rata').parentElement).toHaveTextContent('100,00 zł');
-    expect(screen.getByText('Całkowity koszt kredytu').parentElement).toHaveTextContent('0,00 zł');
+    expect(screen.getByText('Miesięczna rata w symulacji').parentElement).toHaveTextContent(
+      '100,00 zł',
+    );
+    expect(screen.getByText('Koszt odsetkowy w symulacji').parentElement).toHaveTextContent(
+      '0,00 zł',
+    );
     expect(screen.getByText('Suma odsetek').parentElement).toHaveTextContent('0,00 zł');
   });
 

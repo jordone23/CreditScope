@@ -1,7 +1,10 @@
-import Decimal from 'decimal.js';
-import type { LoanCalculationResult, LoanInput, RepaymentScheduleItem } from '../../types/loan';
+import type { LoanCalculationResult, LoanInput } from '../../types/loan';
+import type { RepaymentVariant } from '../../types/creditScenario';
+import { basicLoanInputToScenarioV2 } from './basicLoanInputToScenarioV2';
+import { addMonths } from './calendar';
+import { calculateCreditScenario } from './creditScenarioCalculator';
 
-export type RepaymentVariant = 'annuity' | 'declining';
+export type { RepaymentVariant } from '../../types/creditScenario';
 
 export interface PrepaymentPlan {
   oneTimeAmount?: number;
@@ -21,140 +24,64 @@ export interface AdvancedLoanCalculationResult extends LoanCalculationResult {
   variant: RepaymentVariant;
 }
 
-const DecimalValue = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
-const ZERO = new DecimalValue(0);
-const ONE = new DecimalValue(1);
-const HUNDRED = new DecimalValue(100);
-const MONTHS_IN_YEAR = 12;
-
-function toDecimal(value: number) {
-  return new DecimalValue(value.toString());
-}
-
-function roundMoney(value: Decimal) {
-  return value.toDecimalPlaces(2, DecimalValue.ROUND_HALF_UP);
-}
-
-function toNumber(value: Decimal) {
-  const result = value.toNumber();
-
-  if (!Number.isFinite(result)) {
-    throw new RangeError('Nie można przedstawić wyniku jako skończonej liczby.');
-  }
-
-  return Object.is(result, -0) ? 0 : result;
-}
-
-function calculateAnnuityInstallment(amount: Decimal, rate: Decimal, count: number) {
-  if (rate.isZero()) {
-    return roundMoney(amount.div(count));
-  }
-
-  const factor = ONE.plus(rate).pow(count);
-
-  return roundMoney(amount.times(rate.times(factor)).div(factor.minus(ONE)));
-}
-
-function sum(schedule: RepaymentScheduleItem[], field: keyof RepaymentScheduleItem) {
-  return schedule.reduce((total, item) => total.plus(toDecimal(item[field] as number)), ZERO);
-}
-
-function normalizedPlan(plan: PrepaymentPlan | undefined) {
+function assertPlan(plan: PrepaymentPlan | undefined, installmentCount: number) {
   const recurringAmount = plan?.recurringAmount ?? 0;
   const oneTimeAmount = plan?.oneTimeAmount ?? 0;
   const oneTimeInstallment = plan?.oneTimeInstallment ?? 0;
-
   if (
     !Number.isFinite(recurringAmount) ||
     !Number.isFinite(oneTimeAmount) ||
     !Number.isSafeInteger(oneTimeInstallment) ||
     recurringAmount < 0 ||
     oneTimeAmount < 0 ||
-    oneTimeInstallment < 0
+    oneTimeInstallment < 0 ||
+    oneTimeInstallment > installmentCount
   ) {
     throw new RangeError('Plan nadpłat zawiera nieprawidłowe wartości.');
   }
-
-  return {
-    recurringAmount: roundMoney(toDecimal(recurringAmount)),
-    oneTimeAmount: roundMoney(toDecimal(oneTimeAmount)),
-    oneTimeInstallment,
-  };
+  return { recurringAmount, oneTimeAmount, oneTimeInstallment };
 }
 
+/** Compatibility facade for the former advanced view; it also delegates to the shared v2 engine. */
 export function calculateAdvancedLoan(
   input: LoanInput,
   { prepaymentPlan, variant }: AdvancedLoanOptions,
 ): AdvancedLoanCalculationResult {
-  const installmentCount = input.termYears * MONTHS_IN_YEAR;
-
-  if (!Number.isSafeInteger(installmentCount) || installmentCount < 1) {
-    throw new RangeError('Okres spłaty musi tworzyć bezpieczną liczbę rat.');
+  const scenario = basicLoanInputToScenarioV2(input);
+  const plan = assertPlan(prepaymentPlan, scenario.installmentCount);
+  const prepayments = [];
+  for (let installment = 1; installment <= scenario.installmentCount; installment += 1) {
+    const amount = plan.recurringAmount + (installment === plan.oneTimeInstallment ? plan.oneTimeAmount : 0);
+    if (amount > 0) {
+      prepayments.push({
+        amount,
+        date: addMonths(scenario.firstInstallmentDate, installment - 1),
+        effect: 'reduce-term' as const,
+      });
+    }
   }
-
-  const loanAmount = roundMoney(toDecimal(input.loanAmount));
-  const obligations = roundMoney(toDecimal(input.monthlyObligations));
-  const income = roundMoney(toDecimal(input.monthlyNetIncome));
-  const monthlyRate = toDecimal(input.annualInterestRate).div(HUNDRED).div(MONTHS_IN_YEAR);
-  const annuityInstallment = calculateAnnuityInstallment(loanAmount, monthlyRate, installmentCount);
-  const decliningPrincipal = roundMoney(loanAmount.div(installmentCount));
-  const plan = normalizedPlan(prepaymentPlan);
-  const schedule: RepaymentScheduleItem[] = [];
-  let balance = loanAmount;
-  let prepaymentTotal = ZERO;
-
-  for (
-    let installmentNumber = 1;
-    installmentNumber <= installmentCount && balance.gt(0);
-    installmentNumber += 1
-  ) {
-    const interestAmount = roundMoney(balance.times(monthlyRate));
-    const plannedPrincipal =
-      variant === 'annuity'
-        ? roundMoney(annuityInstallment.minus(interestAmount))
-        : decliningPrincipal;
-    const principalBeforePrepayment = DecimalValue.min(
-      balance,
-      DecimalValue.max(ZERO, plannedPrincipal),
-    );
-    const requestedPrepayment = plan.recurringAmount.plus(
-      installmentNumber === plan.oneTimeInstallment ? plan.oneTimeAmount : ZERO,
-    );
-    const prepaymentAmount = DecimalValue.min(
-      DecimalValue.max(ZERO, requestedPrepayment),
-      balance.minus(principalBeforePrepayment),
-    );
-    const principalAmount = roundMoney(principalBeforePrepayment.plus(prepaymentAmount));
-    const installmentAmount = roundMoney(principalAmount.plus(interestAmount));
-    const remainingBalance = roundMoney(balance.minus(principalAmount));
-
-    schedule.push({
-      installmentNumber,
-      installmentAmount: toNumber(installmentAmount),
-      principalAmount: toNumber(principalAmount),
-      interestAmount: toNumber(interestAmount),
-      remainingBalance: toNumber(remainingBalance),
-    });
-    balance = remainingBalance;
-    prepaymentTotal = prepaymentTotal.plus(prepaymentAmount);
-  }
-
-  const totalRepaymentAmount = roundMoney(sum(schedule, 'installmentAmount'));
-  const totalInterestAmount = roundMoney(sum(schedule, 'interestAmount'));
-  const initialInstallment = toDecimal(schedule[0]?.installmentAmount ?? 0);
+  const result = calculateCreditScenario(
+    { ...scenario, prepayments, repaymentVariant: variant },
+    { includeApr: false },
+  );
+  const schedule = result.schedule.map((item) => ({
+    installmentAmount: item.installmentAmount,
+    installmentNumber: item.installmentNumber,
+    interestAmount: item.interestAmount,
+    principalAmount: item.principalAmount + item.prepaymentAmount,
+    remainingBalance: item.remainingBalance,
+  }));
 
   return {
-    variant,
-    monthlyInstallment: toNumber(initialInstallment),
-    initialInstallment: toNumber(initialInstallment),
-    totalRepaymentAmount: toNumber(totalRepaymentAmount),
-    totalCreditCost: toNumber(roundMoney(totalRepaymentAmount.minus(loanAmount))),
-    totalInterestAmount: toNumber(totalInterestAmount),
-    debtBurdenRatio: toNumber(
-      initialInstallment.plus(obligations).div(income).times(HUNDRED).toDecimalPlaces(2),
-    ),
     actualTermMonths: schedule.length,
-    prepaymentTotal: toNumber(roundMoney(prepaymentTotal)),
+    debtBurdenRatio: result.budgetResilience.currentDebtServiceRatio ?? 0,
+    initialInstallment: result.initialInstallment,
+    monthlyInstallment: result.initialInstallment,
+    prepaymentTotal: result.schedule.reduce((sum, item) => sum + item.prepaymentAmount, 0),
     schedule,
+    totalCreditCost: result.totalCreditCost,
+    totalInterestAmount: result.totalInterestAmount,
+    totalRepaymentAmount: result.totalAmountPayable,
+    variant,
   };
 }

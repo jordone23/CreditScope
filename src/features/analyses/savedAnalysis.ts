@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../../lib/supabase/client';
+import i18n, { localeFor } from '../../i18n/config';
 import type { LoanCalculationResult, LoanInput } from '../../types/loan';
 
 export interface SavedAnalysisSummary {
@@ -43,7 +44,12 @@ interface SupabaseSavedAnalysisRow extends SupabaseAnalysisRow {
 }
 
 export function analysisTitle(date = new Date()) {
-  return `Symulacja ${new Intl.DateTimeFormat('pl-PL', { dateStyle: 'medium' }).format(date)}`;
+  return `${i18n.t('savedAnalyses.defaultTitle')} ${new Intl.DateTimeFormat(
+    localeFor(i18n.language),
+    {
+      dateStyle: 'medium',
+    },
+  ).format(date)}`;
 }
 
 export function createSaveAnalysisPayload(

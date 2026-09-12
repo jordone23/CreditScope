@@ -24,13 +24,13 @@ const unavailableAuthContext: AuthContextValue = {
   isConfigured: false,
   isLoading: false,
   isPasswordRecovery: false,
-  resendSignupEmail: async () => 'Ponowienie wiadomości wymaga konfiguracji Supabase.',
-  sendPasswordRecoveryEmail: async () => 'Reset hasła wymaga konfiguracji Supabase.',
+  resendSignupEmail: async () => 'authErrors.resendConfiguration',
+  sendPasswordRecoveryEmail: async () => 'authErrors.recoveryConfiguration',
   user: null,
   signIn: async () => 'Logowanie wymaga konfiguracji Supabase.',
   signOut: async () => undefined,
   signUp: async () => 'Rejestracja wymaga konfiguracji Supabase.',
-  updatePassword: async () => 'Zmiana hasła wymaga konfiguracji Supabase.',
+  updatePassword: async () => 'authErrors.updateConfiguration',
 };
 
 export const AuthContext = createContext<AuthContextValue>(unavailableAuthContext);

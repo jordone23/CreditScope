@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { formatCurrencyPLN } from '../../../lib/formatters';
 import type { RepaymentScheduleItem } from '../../../types/loan';
 
@@ -20,6 +21,7 @@ function getRepaymentYear(installmentNumber: number): number {
 }
 
 export function RepaymentSchedule({ schedule }: RepaymentScheduleProps) {
+  const { t } = useTranslation();
   const [selectedYear, setSelectedYear] = useState('all');
   const filterId = useId();
   const visibleCountId = useId();
@@ -40,40 +42,40 @@ export function RepaymentSchedule({ schedule }: RepaymentScheduleProps) {
 
   return (
     <section className="repayment-schedule" aria-labelledby="schedule-heading">
-      <h3 id="schedule-heading">Harmonogram spłat</h3>
+      <h3 id="schedule-heading">{t('schedule.heading')}</h3>
       <div className="repayment-schedule__filter">
-        <label htmlFor={filterId}>Pokaż raty z roku spłaty</label>
+        <label htmlFor={filterId}>{t('schedule.filter')}</label>
         <select
           id={filterId}
           value={selectedYear}
           aria-describedby={visibleCountId}
           onChange={(event) => setSelectedYear(event.target.value)}
         >
-          <option value="all">Wszystkie raty</option>
+          <option value="all">{t('schedule.all')}</option>
           {repaymentYears.map((year) => (
             <option key={year} value={year}>
-              Rok {year}
+              {t('schedule.year', { year })}
             </option>
           ))}
         </select>
       </div>
       <p id={visibleCountId} className="repayment-schedule__visible-count">
-        Wyświetlono {visibleSchedule.length} z {schedule.length} rat.
+        {t('schedule.visible', { visible: visibleSchedule.length, total: schedule.length })}
       </p>
       <div
         className="repayment-schedule__scroll"
         tabIndex={0}
-        aria-label="Przewijany poziomo harmonogram spłat"
+        aria-label={t('schedule.scrollLabel')}
       >
         <table className="repayment-schedule__table">
-          <caption>Miesięczny harmonogram spłaty kredytu.</caption>
+          <caption>{t('schedule.caption')}</caption>
           <thead>
             <tr>
-              <th scope="col">Nr raty</th>
-              <th scope="col">Rata</th>
-              <th scope="col">Kapitał</th>
-              <th scope="col">Odsetki</th>
-              <th scope="col">Saldo po racie</th>
+              <th scope="col">{t('schedule.number')}</th>
+              <th scope="col">{t('schedule.installment')}</th>
+              <th scope="col">{t('schedule.principal')}</th>
+              <th scope="col">{t('schedule.interest')}</th>
+              <th scope="col">{t('schedule.balance')}</th>
             </tr>
           </thead>
           <tbody>

@@ -91,3 +91,33 @@ export const loanFormResolver: Resolver<LoanFormValues, undefined, LoanInput> = 
 
   return { values: {}, errors };
 };
+
+const validationKeys: Record<keyof LoanFormValues, string> = {
+  annualInterestRate: 'validation.annualInterestRate',
+  loanAmount: 'validation.loanAmount',
+  monthlyNetIncome: 'validation.monthlyNetIncome',
+  monthlyObligations: 'validation.monthlyObligations',
+  termYears: 'validation.termYears',
+};
+
+export const localizedLoanFormResolver: Resolver<LoanFormValues, undefined, LoanInput> = (
+  values,
+) => {
+  const validation = loanInputSchema.safeParse(parseLoanFormValues(values));
+
+  if (validation.success) {
+    return { values: validation.data, errors: {} };
+  }
+
+  const errors: FieldErrors<LoanFormValues> = {};
+
+  validation.error.issues.forEach((issue) => {
+    const field = issue.path[0];
+
+    if (isLoanFormField(field) && errors[field] === undefined) {
+      errors[field] = { type: 'validation', message: validationKeys[field] };
+    }
+  });
+
+  return { values: {}, errors };
+};

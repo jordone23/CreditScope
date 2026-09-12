@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import '../../../i18n/config';
+import { useTranslation } from 'react-i18next';
 import {
   Cell,
   Legend,
@@ -37,18 +39,27 @@ function toPositiveNumber(value: string) {
 }
 
 export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
+  const { t } = useTranslation();
   const [variant, setVariant] = useState<RepaymentVariant>('annuity');
   const [oneTimeInstallment, setOneTimeInstallment] = useState('');
   const [oneTimeAmount, setOneTimeAmount] = useState('');
   const [recurringAmount, setRecurringAmount] = useState('');
   const [savedCount, setSavedCount] = useState(0);
+  const parsedOneTimeInstallment = Number(oneTimeInstallment);
+  const oneTimeInstallmentIsInvalid =
+    oneTimeInstallment !== '' &&
+    (!Number.isSafeInteger(parsedOneTimeInstallment) ||
+      parsedOneTimeInstallment < 1 ||
+      parsedOneTimeInstallment > input.termYears * 12);
   const plan = useMemo(
     () => ({
-      oneTimeInstallment: Number(oneTimeInstallment) || undefined,
+      oneTimeInstallment: oneTimeInstallmentIsInvalid
+        ? undefined
+        : parsedOneTimeInstallment || undefined,
       oneTimeAmount: toPositiveNumber(oneTimeAmount),
       recurringAmount: toPositiveNumber(recurringAmount),
     }),
-    [oneTimeAmount, oneTimeInstallment, recurringAmount],
+    [oneTimeAmount, oneTimeInstallmentIsInvalid, parsedOneTimeInstallment, recurringAmount],
   );
   const activeResult = useMemo(
     () => calculateAdvancedLoan(input, { variant, prepaymentPlan: plan }),
@@ -62,12 +73,12 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
     [input],
   );
   const balanceData = activeResult.schedule.map((item) => ({
-    rata: item.installmentNumber,
-    saldo: item.remainingBalance,
+    installment: item.installmentNumber,
+    balance: item.remainingBalance,
   }));
   const compositionData = [
-    { name: 'Kapitał', value: input.loanAmount, color: '#006d77' },
-    { name: 'Odsetki', value: activeResult.totalInterestAmount, color: '#d97706' },
+    { name: t('schedule.principal'), value: input.loanAmount, color: '#006d77' },
+    { name: t('schedule.interest'), value: activeResult.totalInterestAmount, color: '#d97706' },
   ];
 
   function saveSimulation() {
@@ -79,34 +90,48 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
 
   return (
     <section className="advanced-simulation" aria-labelledby="advanced-heading">
-      <h3 id="advanced-heading">Rozszerzona symulacja</h3>
-      <p>Porównaj wariant rat i opcjonalnie zastosuj nadpłaty skracające okres spłaty.</p>
-      <div className="advanced-simulation__comparison" aria-label="Porównanie wariantów spłaty">
+      <h3 id="advanced-heading">{t('advanced.heading')}</h3>
+      <p>{t('advanced.intro')}</p>
+      <div className="advanced-simulation__comparison" aria-label={t('advanced.comparison')}>
         <article>
-          <h4>Raty równe</h4>
-          <p>Pierwsza rata: {formatCurrencyPLN(comparison.annuity.initialInstallment)}</p>
-          <p>Koszt: {formatCurrencyPLN(comparison.annuity.totalCreditCost)}</p>
+          <h4>{t('advanced.annuity')}</h4>
+          <p>
+            {t('advanced.firstInstallment', {
+              amount: formatCurrencyPLN(comparison.annuity.initialInstallment),
+            })}
+          </p>
+          <p>
+            {t('advanced.cost', { amount: formatCurrencyPLN(comparison.annuity.totalCreditCost) })}
+          </p>
         </article>
         <article>
-          <h4>Raty malejące</h4>
-          <p>Pierwsza rata: {formatCurrencyPLN(comparison.declining.initialInstallment)}</p>
-          <p>Koszt: {formatCurrencyPLN(comparison.declining.totalCreditCost)}</p>
+          <h4>{t('advanced.declining')}</h4>
+          <p>
+            {t('advanced.firstInstallment', {
+              amount: formatCurrencyPLN(comparison.declining.initialInstallment),
+            })}
+          </p>
+          <p>
+            {t('advanced.cost', {
+              amount: formatCurrencyPLN(comparison.declining.totalCreditCost),
+            })}
+          </p>
         </article>
       </div>
       <fieldset className="advanced-simulation__controls">
-        <legend>Wariant i nadpłaty</legend>
+        <legend>{t('advanced.options')}</legend>
         <label>
-          Wariant rat
+          {t('advanced.variant')}
           <select
             value={variant}
             onChange={(event) => setVariant(event.target.value as RepaymentVariant)}
           >
-            <option value="annuity">Raty równe</option>
-            <option value="declining">Raty malejące</option>
+            <option value="annuity">{t('advanced.annuity')}</option>
+            <option value="declining">{t('advanced.declining')}</option>
           </select>
         </label>
         <label>
-          Numer raty z nadpłatą jednorazową
+          {t('advanced.oneTimeInstallment')}
           <input
             min="1"
             max={input.termYears * 12}
@@ -115,8 +140,13 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
             type="number"
           />
         </label>
+        {oneTimeInstallmentIsInvalid ? (
+          <p className="advanced-simulation__error" role="alert">
+            {t('advanced.installmentError', { max: input.termYears * 12 })}
+          </p>
+        ) : null}
         <label>
-          Kwota nadpłaty jednorazowej (PLN)
+          {t('advanced.oneTimeAmount')}
           <input
             inputMode="decimal"
             value={oneTimeAmount}
@@ -125,7 +155,7 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
           />
         </label>
         <label>
-          Nadpłata cykliczna co miesiąc (PLN)
+          {t('advanced.recurringAmount')}
           <input
             inputMode="decimal"
             value={recurringAmount}
@@ -135,24 +165,33 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
         </label>
       </fieldset>
       <p className="advanced-simulation__summary">
-        Wybrany wariant: {variant === 'annuity' ? 'raty równe' : 'raty malejące'}. Okres po
-        nadpłatach: {activeResult.actualTermMonths} mies., nadpłacony kapitał:{' '}
-        {formatCurrencyPLN(activeResult.prepaymentTotal)}.
+        {t('advanced.selected', {
+          variant: variant === 'annuity' ? t('advanced.annuity') : t('advanced.declining'),
+          months: activeResult.actualTermMonths,
+          amount: formatCurrencyPLN(activeResult.prepaymentTotal),
+        })}
       </p>
       <div className="advanced-simulation__charts">
         <div className="advanced-chart">
-          <h4>Saldo zadłużenia</h4>
+          <h4>{t('advanced.balance')}</h4>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={balanceData}>
-              <XAxis dataKey="rata" />
+              <XAxis dataKey="installment" name={t('advanced.installmentAxis')} />
               <YAxis width={72} />
               <Tooltip formatter={(value) => formatCurrencyPLN(Number(value))} />
-              <Line type="monotone" dataKey="saldo" stroke="#006d77" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="balance"
+                name={t('advanced.balanceAxis')}
+                stroke="#006d77"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="advanced-chart">
-          <h4>Kapitał i odsetki</h4>
+          <h4>{t('advanced.principalAndInterest')}</h4>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie data={compositionData} dataKey="value" nameKey="name" outerRadius={80}>
@@ -168,22 +207,19 @@ export function AdvancedSimulation({ input }: AdvancedSimulationProps) {
       </div>
       <div className="advanced-simulation__actions">
         <button type="button" onClick={() => exportScheduleCsv(activeResult.schedule)}>
-          Eksportuj CSV
+          {t('advanced.exportCsv')}
         </button>
         <button type="button" onClick={() => exportSchedulePdf(activeResult.schedule)}>
-          Eksportuj PDF
+          {t('advanced.exportPdf')}
         </button>
         <button type="button" onClick={saveSimulation}>
-          Zapisz lokalnie
+          {t('advanced.saveLocal')}
         </button>
       </div>
       {savedCount > 0 ? (
-        <p role="status">Lokalnie zapisano {savedCount} ostatnich symulacji.</p>
+        <p role="status">{t('advanced.savedLocal', { count: savedCount })}</p>
       ) : null}
-      <p className="advanced-simulation__note">
-        Funkcje rozszerzone służą wyłącznie edukacyjnej symulacji i nie stanowią rekomendacji
-        finansowej.
-      </p>
+      <p className="advanced-simulation__note">{t('advanced.note')}</p>
     </section>
   );
 }

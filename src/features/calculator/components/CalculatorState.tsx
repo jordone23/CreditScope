@@ -5,6 +5,7 @@ interface CalculatorStateProps {
 }
 
 export function CalculatorState({ state }: CalculatorStateProps) {
+  const { t } = useTranslation();
   if (state === 'calculated') {
     return null;
   }
@@ -12,14 +13,15 @@ export function CalculatorState({ state }: CalculatorStateProps) {
   if (state === 'error') {
     return (
       <p className="calculator-state calculator-state--error" role="alert">
-        Sprawdź oznaczone pola formularza i popraw dane przed obliczeniem symulacji.
+        {t('calculator.state.error')}
       </p>
     );
   }
 
   return (
     <p className="calculator-state" role="status">
-      Uzupełnij dane formularza, aby obliczyć orientacyjną symulację rat równych.
+      {t('calculator.state.initial')}
     </p>
   );
 }
+import { useTranslation } from 'react-i18next';

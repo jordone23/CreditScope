@@ -1,11 +1,12 @@
 import { useEffect, type ChangeEvent } from 'react';
 import type { FieldErrors } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import type { LoanInput } from '../../../types/loan';
 import {
   defaultLoanFormValues,
   formatLoanAmountInput,
-  loanFormResolver,
+  localizedLoanFormResolver,
   type LoanFormValues,
 } from '../loanFormResolver';
 
@@ -17,48 +18,50 @@ interface LoanFormProps {
 }
 
 interface LoanFormField {
-  hint: string;
+  hintKey: string;
   inputMode: 'decimal' | 'numeric';
-  label: string;
+  labelKey: string;
   name: keyof LoanFormValues;
   unit: string;
+  unitKey?: string;
 }
 
 const loanFormFields: LoanFormField[] = [
   {
     name: 'loanAmount',
-    label: 'Kwota kredytu',
+    labelKey: 'calculator.form.loanAmount',
     unit: 'PLN',
     inputMode: 'decimal',
-    hint: 'Np. 250 000 lub 250 000,50',
+    hintKey: 'calculator.form.loanAmountHint',
   },
   {
     name: 'annualInterestRate',
-    label: 'Oprocentowanie nominalne w skali roku',
+    labelKey: 'calculator.form.annualInterestRate',
     unit: '%',
     inputMode: 'decimal',
-    hint: 'Wpisz 0 dla kredytu bez odsetek.',
+    hintKey: 'calculator.form.annualInterestRateHint',
   },
   {
     name: 'termYears',
-    label: 'Okres spłaty',
-    unit: 'lat',
+    labelKey: 'calculator.form.termYears',
+    unit: 'years',
+    unitKey: 'calculator.form.years',
     inputMode: 'numeric',
-    hint: 'Podaj pełną liczbę lat.',
+    hintKey: 'calculator.form.termYearsHint',
   },
   {
     name: 'monthlyNetIncome',
-    label: 'Miesięczny dochód netto',
+    labelKey: 'calculator.form.monthlyNetIncome',
     unit: 'PLN',
     inputMode: 'decimal',
-    hint: 'Dochód po odliczeniu podatków i składek.',
+    hintKey: 'calculator.form.monthlyNetIncomeHint',
   },
   {
     name: 'monthlyObligations',
-    label: 'Miesięczne zobowiązania',
+    labelKey: 'calculator.form.monthlyObligations',
     unit: 'PLN',
     inputMode: 'decimal',
-    hint: 'Wpisz 0, jeśli nie masz takich zobowiązań.',
+    hintKey: 'calculator.form.monthlyObligationsHint',
   },
 ];
 
@@ -84,6 +87,7 @@ function loanInputToFormValues(input: LoanInput): LoanFormValues {
 }
 
 export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad }: LoanFormProps) {
+  const { t } = useTranslation();
   const {
     formState: { errors },
     handleSubmit,
@@ -93,7 +97,7 @@ export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad 
   } = useForm<LoanFormValues, undefined, LoanInput>({
     defaultValues: defaultLoanFormValues,
     mode: 'onChange',
-    resolver: loanFormResolver,
+    resolver: localizedLoanFormResolver,
   });
 
   useEffect(() => {
@@ -104,7 +108,8 @@ export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad 
 
   return (
     <section className="calculator-form-section" aria-labelledby="form-heading">
-      <h2 id="form-heading">Dane do symulacji</h2>
+      <h2 id="form-heading">{t('calculator.form.heading')}</h2>
+      <p className="form-assumption">{t('calculator.form.assumption')}</p>
       <form
         className="loan-form"
         noValidate
@@ -133,7 +138,7 @@ export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad 
             return (
               <div className="form-field" key={field.name}>
                 <label className="form-field__label" htmlFor={field.name}>
-                  {field.label}
+                  {t(field.labelKey)}
                 </label>
                 <div className="form-field__control">
                   <input
@@ -147,15 +152,15 @@ export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad 
                     onChange={handleChange}
                   />
                   <span aria-hidden="true" className="form-field__unit">
-                    {field.unit}
+                    {field.unitKey === undefined ? field.unit : t(field.unitKey)}
                   </span>
                 </div>
                 <p className="form-field__hint" id={hintId}>
-                  {field.hint}
+                  {t(field.hintKey)}
                 </p>
                 {error?.message !== undefined ? (
                   <p className="form-field__error" id={errorId}>
-                    {error.message}
+                    {t(error.message)}
                   </p>
                 ) : null}
               </div>
@@ -163,7 +168,7 @@ export function LoanForm({ onCalculate, onInvalid, onValuesChange, valuesToLoad 
           })}
         </div>
         <button className="calculate-button" type="submit">
-          Oblicz symulację
+          {t('calculator.form.submit')}
         </button>
       </form>
     </section>
