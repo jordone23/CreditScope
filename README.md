@@ -58,7 +58,7 @@ Authentication and saved analyses are optional. See [Setup](docs/SETUP.md) for S
 
 ## Repository guide
 
-The root README and the concise documents in `docs/` are maintained in English for portfolio readers. Internal planning notes and historical Polish specifications are intentionally not part of the public repository.
+The root README and the concise documents in `docs/` are maintained in English for portfolio readers. The original Polish implementation notes and specifications remain available in `docs/specs/` for readers who want the project history.
 
 ## Disclaimer
 

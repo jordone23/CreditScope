@@ -38,4 +38,4 @@ It is not a credit score, loan approval prediction, or bank creditworthiness ass
 - It does not reproduce a contract with variable rates, daily interest conventions, mandatory insurance, commissions, payment holidays, or a lender-specific rounding policy unless those inputs are modelled explicitly.
 - Actual APR/RRSO needs all mandatory dated cash flows, including fees paid outside instalments. It cannot be inferred accurately from only principal, rate, term, income, and existing obligations.
 
-The public repository keeps this document deliberately concise: it describes the implemented educational model and its limits without presenting it as lending or legal advice.
+This document is deliberately concise: it describes the implemented educational model and its limits without presenting it as lending or legal advice. The detailed Polish research record, including legal and methodological sources, is available at [metodologia-obliczen-kredytowych.md](metodologia-obliczen-kredytowych.md).

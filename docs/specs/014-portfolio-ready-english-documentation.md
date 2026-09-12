@@ -13,7 +13,7 @@ Make CreditScope immediately understandable to an English-speaking recruiter or 
 | Area | Decision |
 | --- | --- |
 | Public documentation language | English is canonical for the repository landing page and concise technical documents. |
-| Historical Polish documentation | Remove internal planning notes and historical Polish specifications from the public repository; retain their relevant conclusions in concise English public documents. |
+| Historical Polish documentation | Keep the original Polish planning notes and specifications alongside the concise English public documents; do not duplicate the codebase. |
 | Repository structure | Keep one repository and one source tree. Do not maintain an `en/` copy of the application. |
 | README | Replace the root `README.md` with a concise English, portfolio-first document. |
 | Public app locale | Use English as the first-visit default while keeping `PL | EN` visible and persisting the visitor's choice. |
@@ -44,7 +44,7 @@ Make CreditScope immediately understandable to an English-speaking recruiter or 
 1. Review links from the root README as relative repository links.
 2. Verify that a first visit uses English and that an explicit `PL` choice remains persistent.
 3. Run tests, linting and a production build.
-4. Confirm that no separate code copy, internal planning record, or extra repository was published.
+4. Confirm that no separate code copy or extra repository was published.
 
 ## References
 
