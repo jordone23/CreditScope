@@ -1,7 +1,7 @@
 {
   "name": "credit-scope",
   "description": "Educational loan simulation and indicative household-budget analysis built with React and TypeScript.",
-  "homepage": "https://github.com/jordone23/CreditScope#readme",
+  "homepage": "https://credit-scope-sigma.vercel.app",
   "keywords": [
     "credit",
     "finance",

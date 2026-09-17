@@ -67,7 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return 'authErrors.resendConfiguration';
         }
 
-        const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: email.trim(),
+          options: { emailRedirectTo: window.location.origin },
+        });
         return error === null ? null : 'authErrors.send';
       },
       async sendPasswordRecoveryEmail(email) {
@@ -106,7 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { username: normalizeUsername(username) } },
+          options: {
+            data: { username: normalizeUsername(username) },
+            emailRedirectTo: window.location.origin,
+          },
         });
         return error === null ? null : readableAuthError(error.message, 'sign-up');
       },

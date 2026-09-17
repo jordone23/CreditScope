@@ -1,8 +1,10 @@
 # CreditScope
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20CreditScope-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://credit-scope-sigma.vercel.app)
+
 CreditScope is a responsive web application for educational loan simulations and indicative household-budget analysis. It makes the structure of a repayment plan visible without presenting itself as a bank offer, credit decision, or financial recommendation.
 
-**[Portfolio](docs/PORTFOLIO.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Methodology](docs/METHODOLOGY.md)** · **[Setup](docs/SETUP.md)**
+**[Live Demo](https://credit-scope-sigma.vercel.app)** · **[Portfolio](docs/PORTFOLIO.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Methodology](docs/METHODOLOGY.md)** · **[Setup](docs/SETUP.md)**
 
 ## Why this project
 

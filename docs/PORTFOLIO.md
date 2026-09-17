@@ -1,5 +1,7 @@
 # Portfolio overview
 
+**[Open the live demo](https://credit-scope-sigma.vercel.app)**
+
 ## Product problem
 
 CreditScope makes the mechanics of a loan repayment scenario understandable without claiming to reproduce a lender's offer or approval decision. A user can enter a principal amount, nominal annual rate, repayment term, monthly net income, and existing monthly obligations, then inspect the resulting repayment plan.
@@ -41,4 +43,4 @@ Read [Methodology](METHODOLOGY.md) for formulas and limits, [Architecture](ARCHI
 
 ## Demo assets
 
-When a deployed demo and reviewed screenshots are available, add them under `docs/assets/` and link them from the root README. Do not use placeholders or outdated images in a portfolio presentation.
+The deployed demo is available at [credit-scope-sigma.vercel.app](https://credit-scope-sigma.vercel.app). Add reviewed screenshots under `docs/assets/` when they are available; do not use placeholders or outdated images in a portfolio presentation.
